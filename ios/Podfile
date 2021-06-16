@@ -44,5 +44,3 @@ post_install do |installer|
 
 end
 
-pod 'Firebase/MLVisionFaceModel'
-
