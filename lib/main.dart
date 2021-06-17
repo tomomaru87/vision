@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
 
   @override
@@ -29,11 +29,11 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  File _image;
+  late File _image;
   bool _loading = false;
   bool _isChecked = false;
   bool _isFaceRecognition = false;
-  int _numOfFaces;
+  late int _numOfFaces;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,24 +42,19 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body: Center(
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _image == null
-                  ? Text("画像を撮影してください")
-                  : Image.file(_image),
-              Visibility(
-                visible: _image != null,
-                child: verificationButton(),
-              ),
-              Visibility(
-                visible: _isChecked,
-                child: _isFaceRecognition
-                    ? Text("$_numOfFaces人の顔が認識されました")
-                    : Text("顔が認識できませんでした"),
-              ),
-            ]
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _image == null ? Text("画像を撮影してください") : Image.file(_image),
+          Visibility(
+            visible: _image != null,
+            child: verificationButton(),
+          ),
+          Visibility(
+            visible: _isChecked,
+            child: _isFaceRecognition
+                ? Text("$_numOfFaces人の顔が認識されました")
+                : Text("顔が認識できませんでした"),
+          ),
+        ]),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -72,21 +67,16 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-  Widget verificationButton() {
-    return RaisedButton(
 
+  Widget verificationButton() {
+    return TextButton(
       child: verificationButtonChild(),
-      color: Colors.blue,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
       onPressed: () {
-        !_isChecked
-            ? _startVerification()
-            : _resetVerification();
+        !_isChecked ? _startVerification() : _resetVerification();
       },
     );
   }
+
   Widget verificationButtonChild() {
     if (!_isChecked && _loading) {
       return Container(
@@ -98,46 +88,51 @@ class _MyHomePageState extends State<MyHomePage> {
           valueColor: AlwaysStoppedAnimation(Colors.white),
         ),
       );
-    }else if (!_isChecked) {
-      return Text("顔認識", style: TextStyle(color: Colors.white),);
-    }else {
-      return Text("リセット", style: TextStyle(color: Colors.white),);
+    } else if (!_isChecked) {
+      return Text(
+        "顔認識",
+        style: TextStyle(color: Colors.white),
+      );
+    } else {
+      return Text(
+        "リセット",
+        style: TextStyle(color: Colors.white),
+      );
     }
   }
+
   void _onPickImageSelected() async {
     try {
       final file = await ImagePicker().getImage(source: ImageSource.camera);
       setState(() {
-        _image = File(file.path);
+        _image = File(file!.path);
       });
-      if(file == null) {
+      if (file == null) {
         throw Exception('ファイルを取得できませんでした');
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
+
   void _startVerification() async {
     setState(() {
       _loading = true;
     });
-    final FirebaseVisionImage visionImage = FirebaseVisionImage.fromFile(_image);
+    final FirebaseVisionImage visionImage =
+        FirebaseVisionImage.fromFile(_image);
     final FaceDetector faceDetector = FirebaseVision.instance.faceDetector();
     final List<Face> faces = await faceDetector.processImage(visionImage);
     setState(() {
       _isChecked = !_isChecked;
       _loading = !_loading;
-      _numOfFaces = faces.length != null
-          ? faces.length
-          : 0;
-      _isFaceRecognition = faces.length > 0
-          ? true
-          : false;
+      _numOfFaces = faces.length != null ? faces.length : 0;
+      _isFaceRecognition = faces.length > 0 ? true : false;
     });
     faceDetector.close();
   }
+
   void _resetVerification() {
     setState(() {
-      _image = null;
+      _image = File as File;
       _isChecked = false;
       _isFaceRecognition = false;
     });
